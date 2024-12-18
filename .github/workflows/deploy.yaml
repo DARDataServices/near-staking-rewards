@@ -1,0 +1,45 @@
+name: Deploy - Dev
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Short SHA
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - uses: 'google-github-actions/auth@v2'
+        id: auth
+        with:
+          project_id: 'dar-dev-02'
+          workload_identity_provider: 'projects/998858198546/locations/global/workloadIdentityPools/github/providers/github-oidc'
+          service_account: 'github-actions-default@dar-dev-02.iam.gserviceaccount.com'
+          token_format: 'access_token'
+
+      - name: Docker Auth
+        id: docker-auth
+        uses: 'docker/login-action@v1'
+        with:
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+          registry: 'us-east4-docker.pkg.dev'
+
+      - name: Docker Build
+        run: |
+          docker build . -t us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app:latest
+          docker image tag us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app:latest us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app:${{ steps.vars.outputs.sha_short }}
+          docker image tag us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app:latest us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app:dev
+
+      - name: Push image
+        run: docker push -a us-east4-docker.pkg.dev/dar-dev-02/near-staking-rewards/app
