@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import requests
 class Near:
     def __init__(self):
@@ -29,5 +31,6 @@ class Near:
             "epoch": epoch_start_height,
             "total_staked_near": total_stake / (10**24),
             "active_validators": active_validators,
-            "epoch_rewards": epoch_rewards / (10**24)
+            "epoch_rewards": epoch_rewards / (10**24),
+            "timestamp": datetime.utcnow()
         }

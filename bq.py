@@ -12,16 +12,8 @@ class BQ:
         self.table_id = table_id
 
     def insert_epoch_to_bigquery(self, row):
-        table_ref = self.bq_client.dataset(self.dataset_id).table(self.table_id)
-
-        row_to_insert = {
-            "epoch": row[0],
-            "timestamp": datetime.utcnow(),
-            "total_staked_near": row[2],
-            "epoch_rewards": row[3],
-            "active_validators": row[4],
-        }
-        self.bq_client.insert_rows_json(table_ref, [row_to_insert])
+        table_ref = f"{self.project_id}.{self.dataset_id}.{self.table_id}"
+        self.bq_client.insert_rows_json(table_ref, [row])
         print("Row successfully inserted into BigQuery table.")
 
     def get_historical_data(self):
@@ -51,5 +43,8 @@ class BQ:
 
         file_name = f"DARNEARYieldFile_{datetime.utcnow().strftime('%Y%m%d')}.csv"
 
-        self.storage_client.put_object(Bucket=bucket_name, Key=file_name, Body=csv_buffer.getvalue())
-        return f"Data successfully written to {bucket_name}/{file_name}"
+        bucket = self.storage_client.bucket(bucket_name)
+        blob = bucket.blob(file_name)
+        blob.upload_from_string(csv_buffer.getvalue(), content_type="text/csv")
+
+        return f"Data successfully written to gs://{bucket_name}/{file_name}"

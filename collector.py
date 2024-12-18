@@ -25,7 +25,6 @@ def main():
     if bq.has_current_data(current_epoch):
         print(f"Data for current period already in {PROJECT_ID}.{DATASET_ID}.{TABLE_ID}")
     else:
-        rewards = rewards # TODO get proper data, covert to row
         bq.insert_epoch_to_bigquery(rewards)
 
     current_utc_time = datetime.datetime.now(datetime.timezone.utc)
@@ -33,13 +32,15 @@ def main():
     current_est_time = current_utc_time + est_offset
     is_after_7pm_est = current_est_time.hour >= 19  # Midnight UTC
 
-    if is_after_7pm_est:
+    # if is_after_7pm_est:
+    if True:
         data = clean(bq.get_historical_data())
         send_slack_alert(bq.write_to_s3(data, GCS_BUCKET_NAME))
         # send_slack_alert(upload_to_aws(data, AWS_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION_NAME))
     else:
         print("It's not 7 PM EST or later yet. Skipping file delivery.")
 
+    print("Done.")
 
 # def fetch_validator_data():
 #     url = "https://rpc.mainnet.near.org"
