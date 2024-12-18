@@ -32,5 +32,5 @@ class Near:
             "total_staked_near": total_stake / (10**24),
             "active_validators": active_validators,
             "epoch_rewards": epoch_rewards / (10**24),
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.utcnow().isoformat()
         }

@@ -6,23 +6,21 @@ import boto3
 
 def clean(data_from_bq):
     df = pd.DataFrame(data_from_bq)
-    df['day_settled'] = (df['time_until']).dt.date # Group rewards from same day
+    df['day_settled'] = (df['timestamp']).dt.date # Group rewards from same day
 
-    grouped = df.groupby('day_settled').agg(total_rewards=('total_rewards', 'sum'), total_stake=('total_stake', 'sum')).reset_index()
+    grouped = df.groupby('day_settled').agg(epoch_rewards=('epoch_rewards', 'sum'), total_staked_near=('total_staked_near', 'sum')).reset_index()
     grouped.sort_values(by='day_settled', ascending=True, inplace=True)
-    return grouped.apply(lambda row: format_row(row['day_settled'], row['total_rewards'], row['total_stake']), axis=1)
-
+    return grouped.apply(lambda row: format_row(row['day_settled'], row['epoch_rewards'], row['total_staked_near']), axis=1)
 
 def format_row(date, current_rewards, current_staked):
     return pd.Series({
-        # TODO add below information
         'blockchain': 'NEAR',
         'darAssetID': 'DALYJ9J',
         'darAssetTicker': 'NEAR',
-        'sedol': '???',
+        'sedol': '???',         # TODO
         'periodType': 'daily',
-        'rewardPeriodStartTime': date.strftime('%Y-%m-%d 00:00:00'),
-        'rewardPeriodEndTime': (date + timedelta(days=1)).strftime('%Y-%m-%d 00:00:00'),
+        'rewardPeriodStartTime': (date - timedelta(days=1)).strftime('%Y-%m-%d 00:00:00'),
+        'rewardPeriodEndTime': date.strftime('%Y-%m-%d 00:00:00'),
         'totalRewardQuantity': float(f"{float(current_rewards):.6f}"),
         'stakedQuantity': int(current_staked),
         'reserved1': None,

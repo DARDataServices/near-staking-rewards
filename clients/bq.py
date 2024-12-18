@@ -1,5 +1,5 @@
 from google.cloud import bigquery, storage
-from datetime import datetime
+from datetime import datetime, timedelta
 from io import StringIO
 
 
@@ -17,12 +17,16 @@ class BQ:
         print("Row successfully inserted into BigQuery table.")
 
     def get_historical_data(self):
-        curr_date= int(datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
-        end_date = curr_date - (30 * 86400)  # 30 days in seconds
+        curr_date = datetime.utcnow()
+        start_date = curr_date - timedelta(days=30)
 
+        start_date_str = start_date.strftime('%Y-%m-%d')
+        curr_date_str = curr_date.strftime('%Y-%m-%d')
+
+        # TODO update query once we have more data
         query = f"""
             SELECT * FROM `{self.dataset_id}.{self.table_id}`
-            WHERE timestamp >= {end_date} AND timestamp < {curr_date}
+            WHERE timestamp >= '{start_date_str}' --AND timestamp < '{curr_date_str}'
             ORDER BY epoch DESC
         """
         query_job = self.bq_client.query(query)
