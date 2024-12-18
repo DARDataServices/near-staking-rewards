@@ -1,6 +1,4 @@
 import requests
-import datetime
-
 class Near:
     def __init__(self):
         self.url = "https://rpc.mainnet.near.org"

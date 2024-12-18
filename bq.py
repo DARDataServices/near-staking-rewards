@@ -1,6 +1,5 @@
 from google.cloud import bigquery, storage
 from datetime import datetime
-import os
 from io import StringIO
 
 
